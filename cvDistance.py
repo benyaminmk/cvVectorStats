@@ -2,14 +2,14 @@
 cross validated distance, based on https://github.com/fwillett/cvVectorStats/blob/master/cvDistance.m """
 import numpy as np
 
-def cvDistance(class1,class2,subtractMean=False):# ,CIMode='none',CIAlpha=0.05,CIResamples=1000): #TODO implement CI
+def cvDistance(class0,class1,subtractMean=False):# ,CIMode='none',CIAlpha=0.05,CIResamples=1000): #TODO implement CI
     """Estimate the distance between two distributions
 
     Parameters
     ----------
-    class1 : ndarray (nTrials,nFeatures)
+    class0 : ndarray (nTrials,nFeatures)
         samples from distributions to be compared 
-    class2 : _type_
+    class1 : _type_
         _description_
     subtractMean : bool, optional
         If subtractMean is true, this will center each vector
@@ -23,17 +23,17 @@ def cvDistance(class1,class2,subtractMean=False):# ,CIMode='none',CIAlpha=0.05,C
     euclidDistance : float
         cross-validated estimate of euclidean distance between class 1 and 2
     """
-    assert class1.shape == class2.shape, "Classes must have same shape, different numebrs of trials not implemented yet" #TODO implement different trial numebr for classes
+    assert class0.shape == class1.shape, "Classes must have same shape, different numebrs of trials not implemented yet" #TODO implement different trial numebr for classes
 
-    nTrials, nFeatures = class1.shape
+    nTrials, nFeatures = class0.shape
     squaredDistanceEstimates=np.zeros([nTrials,1])
 
     for x in range(nTrials):
         bigSetIdx = list(range(nTrials))
         smallSetIndex = bigSetIdx.pop(x)
 
-        meanDiff_bigSet = np.mean(class1[bigSetIdx,:] - class2[bigSetIdx,:],axis=0)
-        meanDiff_smallSet = class1[smallSetIndex,:] - class2[smallSetIndex,:]
+        meanDiff_bigSet = np.mean(class0[bigSetIdx,:] - class1[bigSetIdx,:],axis=0)
+        meanDiff_smallSet = class0[smallSetIndex,:] - class1[smallSetIndex,:]
         if subtractMean:
             squaredDistanceEstimates[x] = np.dot(meanDiff_bigSet-np.mean(meanDiff_bigSet)),(meanDiff_smallSet-np.mean(meanDiff_smallSet).transpose())
         else:
