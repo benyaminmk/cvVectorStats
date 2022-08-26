@@ -1,8 +1,9 @@
 """ Author: Benyamin Meschede-Krasa 
 cross validated distance, based on https://github.com/fwillett/cvVectorStats/blob/master/cvDistance.m """
 import numpy as np
+from cvCI import cvJackknifeCI
 
-def cvDistance(class0,class1,subtractMean=False):# ,CIMode='none',CIAlpha=0.05,CIResamples=1000): #TODO implement CI
+def cvDistance(class0,class1,subtractMean=False, CIMode='none',CIAlpha=0.05): #TODO implement CI
     """Estimate the distance between two distributions
 
     Parameters
@@ -14,15 +15,26 @@ def cvDistance(class0,class1,subtractMean=False):# ,CIMode='none',CIAlpha=0.05,C
     subtractMean : bool, optional
         If subtractMean is true, this will center each vector
         before computing the size of the difference, by default False
+    CIMode : str
+        method for computing confidence intervals. Currently only 'jackknife'
+        is implmented
+    CIAlpha : float
+        alpha for confidence interval. Default is 0.05 which give the 95%
+        confidence interval
 
     Returns
     -------
     squaredDistance : float
         cross-validated estimate of squared distance between class 1 and 2
-
-    euclidDistance : float
+    euclideanDistance : float
         cross-validated estimate of euclidean distance between class 1 and 2
+    CI : ndarray(2,2)
+        confidence intervals for squaredDistance (col 0) and euclideanDistance
+        (col 1)
     """
+    class0 = np.array(class0)
+    class1 = np.array(class1)
+
     assert class0.shape == class1.shape, "Classes must have same shape, different numebrs of trials not implemented yet" #TODO implement different trial numebr for classes
 
     nTrials, nFeatures = class0.shape
@@ -41,10 +53,19 @@ def cvDistance(class0,class1,subtractMean=False):# ,CIMode='none',CIAlpha=0.05,C
     
     squaredDistance = np.mean(squaredDistanceEstimates)
     euclideanDistance = np.sign(squaredDistance)*np.sqrt(np.abs(squaredDistance))
-    return squaredDistance, euclideanDistance
+    
+    if CIMode == 'jackknife':
+        wrapperFun = lambda x,y : cvDistance(x,y,subtractMean=subtractMean)
+        [CI, CIDistribution] = cvJackknifeCI([squaredDistance, euclideanDistance], wrapperFun, [class0, class1], CIAlpha)
+    elif CIMode == 'none':
+        CI = []
+        CIDistribution = []
+    else:
+        raise ValueError(f"CIMode {CIMode} not implemented or is invalid. select from ['jackknife','none']")
+
+    return squaredDistance, euclideanDistance, CI, CIDistribution 
 
     
-
 
 
 # def getFoldedIdx(obsPerClass, nFolds):
