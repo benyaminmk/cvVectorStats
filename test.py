@@ -12,7 +12,7 @@ def testDistance(testCI=True):
     from cvDistance import cvDistance
     CIMODE='jackknife'
     TRIAL_NUMS = [5,20]
-    N_REPS = 10 #TODO clean 1000
+    N_REPS = 1000
     DISTANCES = np.linspace(0,10,50)
     N_DIM = 100
 
